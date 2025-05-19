@@ -53,9 +53,9 @@ echo -e "\n"
 curl -X POST http://localhost:3001/messages \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "The Pod 51 Hotel is great value - close to Central Park and lots of subway lines. Plus theres a cool rooftop lounge!",
+    "content": "The Pod 51 Hotel is great value - close to Central Park and lots of subway lines.",
     "userId": "google_456",
-    "topicTitles": ["stay", "leisure"],
+    "topicTitles": ["stay"],
     "createdAt": "2024-05-19T10:10:00Z"
   }'
 echo -e "\n"
@@ -75,9 +75,9 @@ echo -e "\n"
 curl -X POST http://localhost:3001/messages \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "The Metropolitan Museum has free admission on Friday evenings. The rooftop garden has amazing views of Central Park!",
+    "content": "The Metropolitan Museum has free admission on Friday evenings.",
     "userId": "google_456",
-    "topicTitles": ["attractions", "leisure"],
+    "topicTitles": ["attractions"],
     "createdAt": "2024-05-19T10:20:00Z"
   }'
 echo -e "\n"
@@ -97,7 +97,7 @@ echo -e "\n"
 curl -X POST http://localhost:3001/messages \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "Juniors near Times Square has the best cheesecake! You can catch a Broadway show after dinner - perfect evening combo.",
+    "content": "Juniors near Times Square has the best cheesecake! You can catch a Broadway show after dinner.",
     "userId": "google_789",
     "topicTitles": ["food", "leisure"],
     "createdAt": "2024-05-19T10:30:00Z"
@@ -108,7 +108,7 @@ echo -e "\n"
 curl -X POST http://localhost:3001/messages \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "Just spent the afternoon walking the High Line, then had amazing food at Chelsea Market. Highly recommend this combination!",
+    "content": "Just spent the afternoon walking the High Line, then had amazing food at Chelsea Market.",
     "userId": "google_456",
     "topicTitles": ["attractions", "food"],
     "createdAt": "2024-05-19T10:35:00Z"
@@ -132,7 +132,7 @@ curl -X POST http://localhost:3001/messages \
   -d '{
     "content": "For a good mix of attractions, Id say 5 days minimum. Must-sees: Central Park, Met Museum, Brooklyn Bridge, and a Broadway show!",
     "userId": "google_789",
-    "topicTitles": ["attractions", "leisure"],
+    "topicTitles": ["attractions"],
     "createdAt": "2024-05-19T10:45:00Z"
   }'
 echo -e "\n"
@@ -141,9 +141,9 @@ echo -e "\n"
 curl -X POST http://localhost:3001/messages \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "Dont miss the sunset walk across Brooklyn Bridge, then dinner at DUMBO. The city skyline views are incredible!",
+    "content": "Dont miss the sunset walk across Brooklyn Bridge, then dinner at DUMBO.",
     "userId": "google_456",
-    "topicTitles": ["attractions", "food", "leisure"],
+    "topicTitles": ["attractions", "leisure"],
     "createdAt": "2024-05-19T10:50:00Z"
   }'
 echo -e "\n"
@@ -152,7 +152,7 @@ echo -e "\n"
 curl -X POST http://localhost:3001/messages \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "Booked Pod 51 for 6 nights! Thanks everyone for the recommendations. Cant wait to try all these places!",
+    "content": "Booked Pod 51 for 6 nights! Thanks everyone for the recommendations.",
     "userId": "google_123",
     "topicTitles": ["stay"],
     "createdAt": "2024-05-19T10:55:00Z"
@@ -163,7 +163,7 @@ echo -e "\n"
 curl -X POST http://localhost:3001/messages \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "Pro tip: Get the NYC CityPASS if youre planning to visit multiple attractions. Saves money and lets you skip some lines!",
+    "content": "Pro tip: Get the NYC CityPASS if youre planning to visit multiple attractions.",
     "userId": "google_789",
     "topicTitles": ["attractions"],
     "createdAt": "2024-05-19T11:00:00Z"

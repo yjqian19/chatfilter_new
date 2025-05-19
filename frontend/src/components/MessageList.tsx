@@ -10,8 +10,8 @@ export const MessageList = ({ messages, selectedTopics = [] }: MessageListProps)
   const filteredMessages = selectedTopics.length === 0
     ? messages
     : messages.filter(msg =>
-        msg.topics.some(topic =>
-          selectedTopics.includes(topic.id)
+        selectedTopics.every(selectedTopic =>
+          msg.topics.some(topic => topic.id === selectedTopic)
         )
       );
 
@@ -21,7 +21,7 @@ export const MessageList = ({ messages, selectedTopics = [] }: MessageListProps)
   );
 
   return (
-    <div className="h-[calc(100%-8rem)] overflow-y-auto p-3">
+    <div className="h-[calc(100%-8rem)] overflow-y-auto p-5 mb-1 space-y-10">
       {sortedMessages.map(message => (
         <MessageItem key={message.id} message={message} />
       ))}
