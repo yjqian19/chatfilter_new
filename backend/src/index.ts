@@ -1,53 +1,29 @@
 import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
 import cors from 'cors';
-import { messageController } from './controllers/messageController';
-import { topicController } from './controllers/topicController';
+import dotenv from 'dotenv';
+import routes from './routes';
+
+dotenv.config();
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
-  }
-});
+const port = process.env.PORT || 3001;
 
-app.use(cors());
+// 中间件
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+}));
 app.use(express.json());
 
-// WebSocket connection handling
-io.on('connection', (socket) => {
-  console.log('User connected');
+// 路由
+app.use('/api', routes);
 
-  // Send message
-  socket.on('sendMessage', async (data) => {
-    try {
-      const message = await messageController.createMessage(data);
-      io.emit('newMessage', message);
-    } catch (error) {
-      console.error('Failed to send message:', error);
-    }
-  });
-
-  // Create new topic
-  socket.on('createTopic', async (data) => {
-    try {
-      const topic = await topicController.createTopic(data);
-      io.emit('newTopic', topic);
-    } catch (error) {
-      console.error('Failed to create topic:', error);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
+// 错误处理中间件
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something broke!' });
 });
 
-const PORT = process.env.PORT || 3001;
-
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });

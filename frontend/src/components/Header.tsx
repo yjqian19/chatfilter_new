@@ -1,4 +1,3 @@
-// src/components/Header.tsx
 import { useState, useEffect, useRef } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 

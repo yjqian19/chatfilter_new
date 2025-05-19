@@ -1,50 +1,75 @@
+import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 
-export const messageController = {
-  // 获取群组的消息
-  getGroupMessages: async (groupId: string) => {
-    return await prisma.message.findMany({
+// 获取群组的消息
+export const getGroupMessages = async (req: Request, res: Response) => {
+  try {
+    const { groupId } = req.params;
+    const messages = await prisma.message.findMany({
       where: { groupId },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         topicLinks: {
           include: {
-            topic: true
-          }
-        }
+            topic: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'asc'
-      }
+        createdAt: 'desc',
+      },
+      take: 50, // 限制返回最近的50条消息
     });
-  },
 
-  // 发送消息
-  createMessage: async ({ content, userId, groupId, topicIds }: {
-    content: string;
-    userId: string;
-    groupId: string;
-    topicIds?: string[];
-  }) => {
-    return await prisma.message.create({
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+};
+
+// 在群组中创建新消息
+export const createGroupMessage = async (req: Request, res: Response) => {
+  try {
+    const { groupId } = req.params;
+    const { content, userId, topicIds } = req.body;
+
+    const message = await prisma.message.create({
       data: {
         content,
         userId,
         groupId,
-        topicLinks: topicIds ? {
-          create: topicIds.map(topicId => ({
-            topic: { connect: { id: topicId } }
-          }))
-        } : undefined
+        topicLinks: {
+          create: topicIds?.map((topicId: string) => ({
+            topic: {
+              connect: { id: topicId },
+            },
+          })) || [],
+        },
       },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         topicLinks: {
           include: {
-            topic: true
-          }
-        }
-      }
+            topic: true,
+          },
+        },
+      },
     });
+
+    res.json(message);
+  } catch (error) {
+    console.error('Error creating message:', error);
+    res.status(500).json({ error: 'Failed to create message' });
   }
 };
