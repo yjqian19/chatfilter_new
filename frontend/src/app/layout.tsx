@@ -2,7 +2,9 @@
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SessionProvider } from 'next-auth/react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { SessionContextProvider } from '@supabase/auth-helpers-react';
+import { useState } from 'react';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,8 +21,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [supabaseClient] = useState(() => createClientComponentClient());
+
   return (
-    <html lang="en">
+    <html lang="zh">
       <head>
         <title>Chat Filter</title>
         <meta name="description" content="A topic-based chat filter application" />
@@ -28,7 +32,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProvider>{children}</SessionProvider>
+        <SessionContextProvider supabaseClient={supabaseClient}>
+          {children}
+        </SessionContextProvider>
       </body>
     </html>
   );

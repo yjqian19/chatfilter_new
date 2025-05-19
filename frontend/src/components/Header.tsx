@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 
 export function Header() {
-  const { data: session } = useSession();
+  const session = useSession();
+  const supabase = useSupabaseClient();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -25,10 +26,14 @@ export function Header() {
     };
   }, []);
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
     <header className="bg-white shadow-sm relative z-50">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-semibold text-gray-900">NYC Trip</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Chat Filter</h1>
 
         {session ? (
           <div className="relative">
@@ -60,25 +65,18 @@ export function Header() {
                 style={{ zIndex: 1000 }}
               >
                 <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                  {session.user?.name}
+                  {session.user?.user_metadata?.full_name || session.user.email}
                 </div>
                 <button
-                  onClick={() => signOut()}
+                  onClick={handleSignOut}
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  Sign out
+                  Sign Out
                 </button>
               </div>
             )}
           </div>
-        ) : (
-          <button
-            onClick={() => signIn('google')}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-          >
-            Sign in with Google
-          </button>
-        )}
+        ) : null}
       </div>
     </header>
   );
