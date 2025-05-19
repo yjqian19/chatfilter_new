@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Topic } from '@/types';
 
 interface TopicSelectorProps {
@@ -5,6 +6,7 @@ interface TopicSelectorProps {
   selectedTopics: string[];
   onToggleTopic: (topicId: string) => void;
   onClearAll?: () => void;
+  onCreateTopic?: (name: string, color?: string) => Promise<Topic | null>;
   label?: string;
 }
 
@@ -13,9 +15,29 @@ export const TopicSelector = ({
   selectedTopics,
   onToggleTopic,
   onClearAll,
-}: TopicSelectorProps) => (
+  onCreateTopic,
+}: TopicSelectorProps) => {
+  const [newTopicName, setNewTopicName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateTopic = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTopicName.trim() || !onCreateTopic) return;
+
+    setIsCreating(true);
+    try {
+      const topic = await onCreateTopic(newTopicName);
+      if (topic) {
+        setNewTopicName('');
+      }
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
   <div className="mb-2">
-    <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1.5 mb-2">
       <button
         onClick={onClearAll}
         disabled={selectedTopics.length === 0}
@@ -46,5 +68,31 @@ export const TopicSelector = ({
         </button>
       ))}
     </div>
+
+      {onCreateTopic && (
+        <form onSubmit={handleCreateTopic} className="flex gap-1">
+          <input
+            type="text"
+            value={newTopicName}
+            onChange={(e) => setNewTopicName(e.target.value)}
+            placeholder="New topic name..."
+            className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-300"
+          />
+          <button
+            type="submit"
+            disabled={!newTopicName.trim() || isCreating}
+            className={`
+              px-2 py-1 text-xs rounded-lg transition-colors
+              ${!newTopicName.trim() || isCreating
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-600 text-white hover:bg-gray-700'
+              }
+            `}
+          >
+            {isCreating ? '...' : 'Add'}
+          </button>
+        </form>
+      )}
   </div>
 );
+};
