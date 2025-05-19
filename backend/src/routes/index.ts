@@ -2,17 +2,18 @@ import { Router } from 'express';
 import { updateUserInfo } from '../controllers/userController';
 import { getGroupMessages, createGroupMessage } from '../controllers/messageController';
 import { getGroupTopics, createGroupTopic } from '../controllers/topicController';
+import { requireAuth } from '../middleware/auth';
 
 // 创建路由实例
 const router = Router();
 
-// 用户相关路由
+// 用户相关路由 - 不需要认证
 router.put('/users', updateUserInfo);
 
-// 群组相关路由（目前只处理单个群组）
-router.get('/groups/:groupId/messages', getGroupMessages);
-router.post('/groups/:groupId/messages', createGroupMessage);
-router.get('/groups/:groupId/topics', getGroupTopics);
-router.post('/groups/:groupId/topics', createGroupTopic);
+// 需要认证的路由
+router.get('/groups/:groupId/messages', requireAuth, getGroupMessages);
+router.post('/groups/:groupId/messages', requireAuth, createGroupMessage);
+router.get('/groups/:groupId/topics', requireAuth, getGroupTopics);
+router.post('/groups/:groupId/topics', requireAuth, createGroupTopic);
 
 export default router;

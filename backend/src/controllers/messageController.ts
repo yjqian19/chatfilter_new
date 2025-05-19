@@ -1,8 +1,13 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 
+// 扩展Request类型
+interface AuthRequest extends Request {
+  userId?: string;
+}
+
 // 获取群组的消息
-export const getGroupMessages = async (req: Request, res: Response) => {
+export const getGroupMessages = async (req: AuthRequest, res: Response) => {
   try {
     const { groupId } = req.params;
     const messages = await prisma.message.findMany({
@@ -34,10 +39,15 @@ export const getGroupMessages = async (req: Request, res: Response) => {
 };
 
 // 在群组中创建新消息
-export const createGroupMessage = async (req: Request, res: Response) => {
+export const createGroupMessage = async (req: AuthRequest, res: Response) => {
   try {
     const { groupId } = req.params;
-    const { content, userId, topicIds } = req.body;
+    const { content, topicIds } = req.body;
+    const userId = req.userId; // 从请求中获取用户ID
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID is required' });
+    }
 
     const message = await prisma.message.create({
       data: {
