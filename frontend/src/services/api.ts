@@ -1,7 +1,7 @@
-import { Message, Topic } from '../types';
+import { Message, Topic, User } from '../types';
 import { Session } from 'next-auth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // API请求辅助函数
 const fetchWithAuth = async (url: string, session: Session | null, options: RequestInit = {}) => {
@@ -9,12 +9,8 @@ const fetchWithAuth = async (url: string, session: Session | null, options: Requ
     throw new Error('未登录');
   }
 
-  // 使用email作为用户ID（需确保在Google登录中获取到了email）
-  const userId = session.user.email;
-
   const headers = {
     'Content-Type': 'application/json',
-    'user-id': userId,
     ...options.headers,
   };
 
@@ -33,26 +29,26 @@ const fetchWithAuth = async (url: string, session: Session | null, options: Requ
 
 // 用户相关API
 export const userApi = {
-  // 更新或创建用户信息
-  updateUserInfo: async (session: Session | null) => {
+  // 获取或创建用户信息
+  getOrCreateUser: async (session: Session | null): Promise<User> => {
     if (!session?.user?.email) {
       throw new Error('未登录');
     }
 
-    const googleId = session.user.email;
+    const userId = session.user.email;
     const name = session.user.name || '';
 
     const response = await fetch(`${API_URL}/users`, {
-      method: 'PUT',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        id: googleId,
+        id: userId,
         name
       }),
     });
 
     if (!response.ok) {
-      throw new Error('更新用户信息失败');
+      throw new Error('用户操作失败');
     }
 
     return response.json();
@@ -61,42 +57,58 @@ export const userApi = {
 
 // 消息相关API
 export const messageApi = {
-  // 获取群组消息
-  getGroupMessages: async (groupId: string, session: Session | null): Promise<Message[]> => {
-    return fetchWithAuth(`/groups/${groupId}/messages`, session);
+  // 获取所有消息
+  getMessages: async (session: Session | null): Promise<Message[]> => {
+    return fetchWithAuth('/messages', session);
   },
 
-  // 创建新消息
-  createGroupMessage: async (
-    groupId: string,
+  // 发送新消息
+  sendMessage: async (
     content: string,
-    session: Session | null,
-    topicIds: string[] = []
+    topicTitles: string[],
+    session: Session | null
   ): Promise<Message> => {
-    return fetchWithAuth(`/groups/${groupId}/messages`, session, {
+    if (!session?.user?.email) {
+      throw new Error('未登录');
+    }
+
+    const userId = session.user.email;
+
+    return fetch(`${API_URL}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ content, topicIds }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content,
+        userId,
+        topicTitles
+      }),
+    }).then(response => {
+      if (!response.ok) {
+        return response.json().then(error => {
+          throw new Error(error.error || '发送消息失败');
+        });
+      }
+      return response.json();
     });
   },
 };
 
-// 主题相关API
+// 话题相关API
 export const topicApi = {
-  // 获取群组主题
-  getGroupTopics: async (groupId: string, session: Session | null): Promise<Topic[]> => {
-    return fetchWithAuth(`/groups/${groupId}/topics`, session);
+  // 获取所有话题
+  getTopics: async (session: Session | null): Promise<Topic[]> => {
+    return fetchWithAuth('/topics', session);
   },
 
-  // 创建新主题
-  createGroupTopic: async (
-    groupId: string,
-    name: string,
-    session: Session | null,
-    color?: string
+  // 创建新话题
+  createTopic: async (
+    title: string,
+    color: string = '#FFFFFF',
+    session: Session | null
   ): Promise<Topic> => {
-    return fetchWithAuth(`/groups/${groupId}/topics`, session, {
+    return fetchWithAuth('/topics', session, {
       method: 'POST',
-      body: JSON.stringify({ name, color }),
+      body: JSON.stringify({ title, color }),
     });
   },
 };

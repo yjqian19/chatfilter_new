@@ -64,7 +64,7 @@ export const TopicSelector = ({
             hover:shadow-sm
           `}
         >
-          {topic.name}
+          {topic.title}
         </button>
       ))}
     </div>

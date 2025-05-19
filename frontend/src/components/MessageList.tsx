@@ -10,8 +10,8 @@ export const MessageList = ({ messages, selectedTopics = [] }: MessageListProps)
   const filteredMessages = selectedTopics.length === 0
     ? messages
     : messages.filter(msg =>
-        msg.topicLinks.some(link =>
-          selectedTopics.includes(link.topic.id)
+        msg.topics.some(topic =>
+          selectedTopics.includes(topic.id)
         )
       );
 

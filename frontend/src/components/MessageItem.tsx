@@ -26,14 +26,14 @@ export const MessageItem = ({ message }: MessageItemProps) => {
         <div className="text-gray-800">{message.content}</div>
 
         {/* 主题标签 */}
-        {message.topicLinks.length > 0 && (
+        {message.topics.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {message.topicLinks.map(link => (
+            {message.topics.map(topic => (
               <span
-                key={link.topic.id}
+                key={topic.id}
                 className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600"
               >
-                {link.topic.name}
+                {topic.title}
               </span>
             ))}
           </div>

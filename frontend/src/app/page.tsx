@@ -13,9 +13,6 @@ import {
 } from '../components';
 import { userApi, messageApi, topicApi } from '../services/api';
 
-// 默认群组ID (暂时硬编码为单一群组)
-const DEFAULT_GROUP_ID = '1';
-
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -37,8 +34,8 @@ export default function Home() {
   // 用户登录后，存储用户信息
   useEffect(() => {
     if (session) {
-      userApi.updateUserInfo(session)
-        .catch(err => console.error('Failed to update user info:', err));
+      userApi.getOrCreateUser(session)
+        .catch(err => console.error('用户信息更新失败:', err));
     }
   }, [session]);
 
@@ -50,16 +47,16 @@ export default function Home() {
         setError(null);
 
         try {
-          // 加载群组主题
-          const topicsData = await topicApi.getGroupTopics(DEFAULT_GROUP_ID, session);
+          // 加载所有主题
+          const topicsData = await topicApi.getTopics(session);
           setTopics(topicsData);
 
-          // 加载群组消息
-          const messagesData = await messageApi.getGroupMessages(DEFAULT_GROUP_ID, session);
+          // 加载所有消息
+          const messagesData = await messageApi.getMessages(session);
           setMessages(messagesData);
         } catch (err) {
-          console.error('Failed to load data:', err);
-          setError('Failed to load data');
+          console.error('数据加载失败:', err);
+          setError('数据加载失败');
         } finally {
           setIsLoading(false);
         }
@@ -69,12 +66,12 @@ export default function Home() {
     loadData();
   }, [session]);
 
-  // 切换主题选择
-  const toggleTopic = (topicId: string) => {
+  // 切换主题选择 - 使用title而不是id
+  const toggleTopic = (topicTitle: string) => {
     setSelectedTopics(prev =>
-      prev.includes(topicId)
-        ? prev.filter(id => id !== topicId)
-        : [...prev, topicId]
+      prev.includes(topicTitle)
+        ? prev.filter(title => title !== topicTitle)
+        : [...prev, topicTitle]
     );
   };
 
@@ -86,37 +83,33 @@ export default function Home() {
     setError(null);
 
     try {
-      const message = await messageApi.createGroupMessage(
-        DEFAULT_GROUP_ID,
+      const message = await messageApi.sendMessage(
         newMessage,
-        session,
-        selectedTopics
+        selectedTopics,
+        session
       );
 
       setMessages(prev => [message, ...prev]);
       setNewMessage('');
     } catch (err) {
-      console.error('Failed to send message:', err);
-      setError('Failed to send message');
+      console.error('消息发送失败:', err);
+      setError('消息发送失败');
     } finally {
       setIsLoading(false);
     }
   };
 
   // 创建新主题
-  const handleCreateTopic = async (name: string, color?: string): Promise<Topic | null> => {
-    if (!name.trim() || !session) return null;
+  const handleCreateTopic = async (title: string, color: string = '#FFFFFF'): Promise<Topic | null> => {
+    if (!title.trim() || !session) return null;
 
     try {
-      const topic = await topicApi.createGroupTopic(DEFAULT_GROUP_ID, name, session, color);
+      const topic = await topicApi.createTopic(title, color, session);
       setTopics(prev => [...prev, topic]);
       return topic;
     } catch (err: unknown) {
-      if (err instanceof Error && err.message.includes('already exists')) {
-        return null; // 主题已存在
-      }
-      console.error('Failed to create topic:', err);
-      setError('Failed to create topic');
+      console.error('主题创建失败:', err);
+      setError('主题创建失败');
       return null;
     }
   };
@@ -128,7 +121,7 @@ export default function Home() {
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">加载中...</div>
       </div>
     );
   }
@@ -152,7 +145,7 @@ export default function Home() {
 
         {isLoading && messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-gray-500">Loading data...</div>
+            <div className="text-gray-500">数据加载中...</div>
           </div>
         ) : activeTab === 'all' ? (
           <div className="flex-1 flex flex-col min-h-0">
@@ -160,7 +153,7 @@ export default function Home() {
               <MessageList messages={messages} />
             </div>
             <div className="flex-shrink-0 p-4 bg-gray-50 border-t border-gray-200">
-              <h2 className="text-sm font-medium text-gray-700 mb-2">Send by Topics</h2>
+              <h2 className="text-sm font-medium text-gray-700 mb-2">按主题发送</h2>
               <TopicSelector
                 topics={topics}
                 selectedTopics={selectedTopics}
@@ -179,7 +172,7 @@ export default function Home() {
         ) : (
           <div className="flex-1 flex flex-col min-h-0">
             <div className="flex-shrink-0 p-4 bg-gray-50 border-b border-gray-200">
-              <h2 className="text-sm font-medium text-gray-700 mb-2">Read by Topics</h2>
+              <h2 className="text-sm font-medium text-gray-700 mb-2">按主题筛选</h2>
               <TopicSelector
                 topics={topics}
                 selectedTopics={selectedTopics}
