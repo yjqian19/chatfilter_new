@@ -181,6 +181,7 @@ export default function Home() {
                 onToggleTopic={toggleTopic}
                 onClearAll={handleClearAllTopics}
                 onCreateTopic={handleCreateTopic}
+                showCreateTopic={true}
               />
               <MessageInput
                 value={newMessage}
@@ -200,6 +201,7 @@ export default function Home() {
                 onToggleTopic={toggleTopic}
                 onClearAll={handleClearAllTopics}
                 onCreateTopic={handleCreateTopic}
+                showCreateTopic={false}
               />
             </div>
             <div className="flex-1 overflow-y-auto">

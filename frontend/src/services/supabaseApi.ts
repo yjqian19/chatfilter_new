@@ -20,9 +20,6 @@ interface SupabaseMessage {
   }>;
 }
 
-// 默认群组ID - 在Supabase中创建后需要更新
-const DEFAULT_GROUP_ID = '00000000-0000-0000-0000-000000000001';
-
 // 确保用户已存储到数据库
 export const ensureUser = async (session: Session | null) => {
   if (!session?.user) {
@@ -47,7 +44,7 @@ export const ensureUser = async (session: Session | null) => {
 // 消息相关API
 export const messageApi = {
   // 获取群组消息
-  getGroupMessages: async (groupId: string = DEFAULT_GROUP_ID): Promise<Message[]> => {
+  getGroupMessages: async (groupId: string): Promise<Message[]> => {
     const { data, error } = await supabase
       .from('messages')
       .select(`
@@ -87,7 +84,7 @@ export const messageApi = {
 
   // 创建新消息
   createGroupMessage: async (
-    groupId: string = DEFAULT_GROUP_ID,
+    groupId: string,
     content: string,
     session: Session | null,
     topicIds: string[] = []
@@ -168,7 +165,7 @@ export const messageApi = {
 // 主题相关API
 export const topicApi = {
   // 获取群组主题
-  getGroupTopics: async (groupId: string = DEFAULT_GROUP_ID): Promise<Topic[]> => {
+  getGroupTopics: async (groupId: string): Promise<Topic[]> => {
     const { data, error } = await supabase
       .from('topics')
       .select('*')
@@ -186,7 +183,7 @@ export const topicApi = {
 
   // 创建新主题
   createGroupTopic: async (
-    groupId: string = DEFAULT_GROUP_ID,
+    groupId: string,
     name: string,
     session: Session | null,
     color?: string
@@ -233,6 +230,8 @@ export const groupApi = {
     if (!session?.user) {
       throw new Error('未登录');
     }
+
+    const DEFAULT_GROUP_ID = '00000000-0000-0000-0000-000000000001';
 
     // 先检查默认群组是否存在
     const { data: existingGroup } = await supabase
