@@ -13,73 +13,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 用户模型
-model User {
-  id          String      @id @default(uuid())
-  name        String
-  pronouns    String?
-  bio         String?
-  createdAt   DateTime    @default(now())
-  groups      UserGroup[] // 保留用户-群组关系，为后续扩展
-  ownedGroups ChatGroup[] // 用户创建的群组（作为群主）
-  messages    Message[]   // 添加这个：用户发送的消息
-}
-
-// 群组模型
-model ChatGroup {
-  id        String      @id @default(uuid())
-  name      String
-  ownerId   String      // 群主ID
-  owner     User        @relation(fields: [ownerId], references: [id])
-  members   UserGroup[] // 保留群组-成员关系，为后续扩展
-  messages  Message[]
-  topics    Topic[]
-  createdAt DateTime    @default(now())
-}
-
-// 用户-群组关系（保留为后续扩展）
-model UserGroup {
-  userId    String
-  groupId   String
-  user      User        @relation(fields: [userId], references: [id])
-  group     ChatGroup   @relation(fields: [groupId], references: [id])
-  joinedAt  DateTime    @default(now())
-
-  @@id([userId, groupId])
-}
-
 // 消息模型
 model Message {
-  id        String          @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   content   String
-  userId    String
-  groupId   String
-  user      User           @relation(fields: [userId], references: [id])
-  group     ChatGroup      @relation(fields: [groupId], references: [id])
-  topicLinks MessageTopic[]
-  createdAt DateTime       @default(now())
+  userName  String   // 直接存储用户名，简化用户系统
+  createdAt DateTime @default(now())
+  topic     Topic    @relation(fields: [topicId], references: [id])
+  topicId   Int
 }
 
 // 话题模型
 model Topic {
-  id        String          @id @default(uuid())
-  name      String
-  color     String?
-  groupId   String
-  group     ChatGroup      @relation(fields: [groupId], references: [id])
-  messageLinks MessageTopic[]
-  createdAt DateTime       @default(now())
-
-  @@unique([name, groupId]) // 群内话题名称唯一
-}
-
-// 消息-话题关联
-model MessageTopic {
-  messageId String
-  topicId   String
-  message   Message   @relation(fields: [messageId], references: [id])
-  topic     Topic     @relation(fields: [topicId], references: [id])
+  id        Int       @id @default(autoincrement())
+  title     String    @unique  // 话题标题唯一
   createdAt DateTime  @default(now())
-
-  @@id([messageId, topicId])
+  messages  Message[]
 }
