@@ -10,32 +10,14 @@ import {
   TopicSelector,
   TabSelector
 } from '../components';
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
-
-// 定义Supabase返回的数据类型
-interface SupabaseMessageRow {
-  id: string;
-  content: string;
-  user_id: string;
-  group_id: string;
-  created_at: string;
-  users: { id: string; name: string };
-  message_topics?: Array<{
-    topics: {
-      id: string;
-      name: string;
-      color?: string;
-      group_id: string;
-    }
-  }>;
-}
+import { useSession } from '@supabase/auth-helpers-react';
+import { messageApi, topicApi } from '../services/supabaseApi';
 
 // 默认群组ID (使用先前创建的UUID)
 const DEFAULT_GROUP_ID = '00000000-0000-0000-0000-000000000001';
 
 export default function Home() {
   const session = useSession();
-  const supabase = useSupabaseClient();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'all' | 'filtered'>('all');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -57,7 +39,6 @@ export default function Home() {
     async function ensureUserInfo() {
       if (session) {
         try {
-          // 使用supabaseApi中的ensureUser代替旧的userApi
           const userData = await fetch('/api/users/ensure', {
             method: 'POST',
           }).then(res => res.json());
@@ -81,63 +62,12 @@ export default function Home() {
 
         try {
           // 加载群组主题
-          const { data: topicsData, error: topicsError } = await supabase
-            .from('topics')
-            .select('*')
-            .eq('group_id', DEFAULT_GROUP_ID)
-            .order('created_at', { ascending: true });
-
-          if (topicsError) throw topicsError;
-
-          setTopics((topicsData || []).map(item => ({
-            id: item.id,
-            name: item.name,
-            color: item.color,
-            groupId: item.group_id
-          })));
+          const topicsData = await topicApi.getGroupTopics(DEFAULT_GROUP_ID);
+          setTopics(topicsData);
 
           // 加载群组消息
-          const { data: messagesData, error: messagesError } = await supabase
-            .from('messages')
-            .select(`
-              id, content, created_at, user_id, group_id,
-              users:user_id (id, name),
-              message_topics (
-                topics:topic_id (id, name, color, group_id)
-              )
-            `)
-            .eq('group_id', DEFAULT_GROUP_ID)
-            .order('created_at', { ascending: false })
-            .limit(50);
-
-          if (messagesError) throw messagesError;
-
-          // 处理并转换消息数据
-          const transformedMessages = (messagesData || []).map(item => {
-            // 确保每个字段都存在并处理嵌套结构
-            const messageData = item as unknown as SupabaseMessageRow;
-            return {
-              id: messageData.id,
-              content: messageData.content,
-              userId: messageData.user_id,
-              groupId: messageData.group_id,
-              createdAt: new Date(messageData.created_at),
-              user: {
-                id: messageData.users.id,
-                name: messageData.users.name
-              },
-              topicLinks: (messageData.message_topics || []).map(mt => ({
-                topic: {
-                  id: mt.topics.id,
-                  name: mt.topics.name,
-                  color: mt.topics.color,
-                  groupId: mt.topics.group_id
-                }
-              }))
-            } as Message;
-          });
-
-          setMessages(transformedMessages);
+          const messagesData = await messageApi.getGroupMessages(DEFAULT_GROUP_ID);
+          setMessages(messagesData);
         } catch (err) {
           console.error('Failed to load data:', err);
           setError('Failed to load data');
@@ -148,7 +78,7 @@ export default function Home() {
     }
 
     loadData();
-  }, [session, supabase]);
+  }, [session]);
 
   // 切换主题选择
   const toggleTopic = (topicId: string) => {
@@ -167,74 +97,14 @@ export default function Home() {
     setError(null);
 
     try {
-      const user = session.user;
+      const message = await messageApi.createGroupMessage(
+        DEFAULT_GROUP_ID,
+        newMessage,
+        session,
+        selectedTopics
+      );
 
-      // 1. 创建消息
-      const { data: message, error: messageError } = await supabase
-        .from('messages')
-        .insert({
-          content: newMessage,
-          user_id: user.id,
-          group_id: DEFAULT_GROUP_ID
-        })
-        .select()
-        .single();
-
-      if (messageError) throw messageError;
-
-      // 2. 创建消息-主题关联
-      if (selectedTopics.length > 0) {
-        const messageTopics = selectedTopics.map(topicId => ({
-          message_id: message.id,
-          topic_id: topicId
-        }));
-
-        const { error: linkError } = await supabase
-          .from('message_topics')
-          .insert(messageTopics);
-
-        if (linkError) throw linkError;
-      }
-
-      // 3. 获取完整的消息数据
-      const { data: fullMessage, error: fullMessageError } = await supabase
-        .from('messages')
-        .select(`
-          id, content, created_at, user_id, group_id,
-          users:user_id (id, name),
-          message_topics (
-            topics:topic_id (id, name, color, group_id)
-          )
-        `)
-        .eq('id', message.id)
-        .single();
-
-      if (fullMessageError) throw fullMessageError;
-
-      // 处理获取的消息数据
-      const messageData = fullMessage as unknown as SupabaseMessageRow;
-
-      const formattedMessage = {
-        id: messageData.id,
-        content: messageData.content,
-        userId: messageData.user_id,
-        groupId: messageData.group_id,
-        createdAt: new Date(messageData.created_at),
-        user: {
-          id: messageData.users.id,
-          name: messageData.users.name
-        },
-        topicLinks: (messageData.message_topics || []).map((mt) => ({
-          topic: {
-            id: mt.topics.id,
-            name: mt.topics.name,
-            color: mt.topics.color,
-            groupId: mt.topics.group_id
-          }
-        }))
-      };
-
-      setMessages(prev => [formattedMessage, ...prev]);
+      setMessages(prev => [message, ...prev]);
       setNewMessage('');
     } catch (err) {
       console.error('Failed to send message:', err);
@@ -249,29 +119,12 @@ export default function Home() {
     if (!name.trim() || !session) return null;
 
     try {
-      const { data, error } = await supabase
-        .from('topics')
-        .insert({
-          name,
-          color,
-          group_id: DEFAULT_GROUP_ID
-        })
-        .select()
-        .single();
-
-      if (error) {
-        if (error.code === '23505') {
-          throw new Error('Topic already exists');
-        }
-        throw error;
-      }
-
-      const topic = {
-        id: data.id,
-        name: data.name,
-        color: data.color,
-        groupId: data.group_id
-      };
+      const topic = await topicApi.createGroupTopic(
+        DEFAULT_GROUP_ID,
+        name,
+        session,
+        color
+      );
 
       setTopics(prev => [...prev, topic]);
       return topic;
