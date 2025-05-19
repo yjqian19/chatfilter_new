@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -69,7 +70,7 @@ app.post('/topics', async (req, res) => {
     });
     res.json(topic);
   } catch (error) {
-    if (error.code === 'P2002') {
+    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
       res.status(400).json({ error: '话题已存在' });
     } else {
       res.status(500).json({ error: '创建话题失败' });
