@@ -14,7 +14,6 @@ app.use(cors());
 app.use(express.json());
 
 // POST 方法
-
 // 获取或创建用户（用于Google登录后）
 app.post('/users', async (req, res) => {
   const { id, name } = req.body;  // id 是 Google OAuth ID，name 是可选的
@@ -101,7 +100,6 @@ app.post('/topics', async (req, res) => {
 });
 
 // GET 方法
-
 // 获取所有消息
 app.get('/messages', async (req, res) => {
   try {
@@ -111,7 +109,7 @@ app.get('/messages', async (req, res) => {
         topics: true   // 包含关联的所有话题
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'asc'
       }
     });
     res.json(messages);
@@ -130,10 +128,10 @@ app.get('/topics', async (req, res) => {
         },
         messages: {
           take: 1,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { createdAt: 'asc' }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'asc' }
     });
     res.json(topics);
   } catch (error) {

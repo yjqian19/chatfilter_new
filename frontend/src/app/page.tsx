@@ -16,13 +16,19 @@ import { userApi, messageApi, topicApi } from '../services/api';
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'all' | 'filtered'>('all');
+
+  // 全部消息 + 主题
   const [messages, setMessages] = useState<Message[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+  // 用户选择主题
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  // 用户新消息
   const [newMessage, setNewMessage] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'filtered'>('all');
+  // 加载状态和错误状态
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
 
   // 重定向未登录用户到登录页
   useEffect(() => {
@@ -66,7 +72,7 @@ export default function Home() {
     loadData();
   }, [session]);
 
-  // 切换主题选择 - 使用title而不是id
+  // 切换主题选择
   const toggleTopic = (topicTitle: string) => {
     setSelectedTopics(prev =>
       prev.includes(topicTitle)
@@ -99,8 +105,18 @@ export default function Home() {
     }
   };
 
+  // 生成随机颜色的函数
+  const getRandomColor = (): string => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
   // 创建新主题
-  const handleCreateTopic = async (title: string, color: string = '#FFFFFF'): Promise<Topic | null> => {
+  const handleCreateTopic = async (title: string, color: string = getRandomColor()): Promise<Topic | null> => {
     if (!title.trim() || !session) return null;
 
     try {
@@ -149,7 +165,7 @@ export default function Home() {
           </div>
         ) : activeTab === 'all' ? (
           <div className="flex-1 flex flex-col min-h-0">
-            <MessageList messages={messages} />
+            <MessageList messages={messages} session={session} />
             <div className="flex-shrink-0 p-4 bg-gray-50 border-t-2 border-gray-400">
               <h2 className="text-base font-medium text-gray-700 mb-2"><strong>Send</strong> by topic</h2>
               <TopicSelector
@@ -169,7 +185,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col min-h-0">
-            <div className="flex-shrink-0 p-4 bg-gray-50">
+            <div className="flex-shrink-0 p-4 bg-gray-50 border-b-2 border-gray-400">
               <h2 className="text-base font-medium text-gray-700 mb-2"><strong>Read</strong> by topic</h2>
               <TopicSelector
                 topics={topics}
@@ -182,6 +198,7 @@ export default function Home() {
             <MessageList
               messages={messages}
               selectedTopics={selectedTopics}
+              session={session}
             />
           </div>
         )}

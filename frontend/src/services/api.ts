@@ -104,7 +104,7 @@ export const topicApi = {
   // 创建新话题
   createTopic: async (
     title: string,
-    color: string = '#FFFFFF',
+    color: string,
     session: Session | null
   ): Promise<Topic> => {
     return fetchWithAuth('/topics', session, {

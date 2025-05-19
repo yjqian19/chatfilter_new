@@ -59,11 +59,17 @@ export const TopicSelector = ({
             className={`
               px-3 py-1 text-sm rounded-full transition-all duration-200
               ${selectedTopics.includes(topic.id)
-                ? 'bg-gray-600 text-white transform hover:scale-105 active:scale-95 hover:-translate-y-0.5'
+                ? 'bg-gray-600 transform hover:scale-105 active:scale-95 hover:-translate-y-0.5'
                 : 'bg-gray-200 hover:bg-gray-300 active:scale-95 hover:-translate-y-0.5'
               }
               hover:shadow-sm
             `}
+            style={{
+              borderColor: selectedTopics.includes(topic.id) ? topic.color : undefined,
+              backgroundColor: selectedTopics.includes(topic.id) ? `${topic.color}33` : undefined, // 33 is the hex for 20% opacity
+              borderWidth: selectedTopics.includes(topic.id) ? '1px' : undefined,
+              borderStyle: selectedTopics.includes(topic.id) ? 'solid' : undefined
+            }}
           >
             {topic.title}
           </button>

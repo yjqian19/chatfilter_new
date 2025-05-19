@@ -1,12 +1,14 @@
 import { Message } from '@/types';
+import { Session } from 'next-auth';
 
 interface MessageItemProps {
   message: Message;
+  session: Session;
 }
 
-export const MessageItem = ({ message }: MessageItemProps) => {
-  // 临时写死当前用户ID为测试用途
-  const currentUserId = '1';
+export const MessageItem = ({ message, session}: MessageItemProps) => {
+
+  const currentUserId = session?.user?.email;
   const isMyMessage = message.userId === currentUserId;
 
   return (
@@ -21,7 +23,7 @@ export const MessageItem = ({ message }: MessageItemProps) => {
 
       {/* 气泡 */}
       <div className={`max-w-[80%] rounded-lg p-3 ${
-        isMyMessage ? 'bg-gray-100' : 'bg-white'
+        isMyMessage ? 'bg-gray-300' : 'bg-white'
       } border border-gray-200`}>
 
         {/* 主题标签 */}
