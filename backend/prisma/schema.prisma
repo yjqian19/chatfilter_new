@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id       String    @id                     // Google OAuth ID (sub)
+  id       String    @id                     // Email ( later change to sub)
   name     String?                           // 可选：用于显示
   messages Message[]                         // 一对多：用户发的消息
 }

@@ -31,6 +31,7 @@ const fetchWithAuth = async (url: string, session: Session | null, options: Requ
 export const userApi = {
   // 获取或创建用户信息
   getOrCreateUser: async (session: Session | null): Promise<User> => {
+    console.log('session', session?.user);
     if (!session?.user?.email) {
       throw new Error('未登录');
     }
