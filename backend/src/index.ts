@@ -13,34 +13,110 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// 获取所有消息
-app.get('/messages', async (req, res) => {
+// POST 方法
+
+// 获取或创建用户（用于Google登录后）
+app.post('/users', async (req, res) => {
+  const { id, name } = req.body;  // id 是 Google OAuth ID，name 是可选的
   try {
-    const messages = await prisma.message.findMany({
-      include: { topic: true },
-      orderBy: { createdAt: 'desc' }
+    const user = await prisma.user.upsert({
+      where: { id },
+      update: name ? { name } : {},  // 只有当name存在时才更新
+      create: { id, name }  // name在schema中已定义为可选
     });
-    res.json(messages);
+    res.json(user);
   } catch (error) {
-    res.status(500).json({ error: '获取消息失败' });
+    console.error('用户操作失败:', error);
+    res.status(500).json({ error: '用户操作失败' });
   }
 });
 
 // 发送新消息
 app.post('/messages', async (req, res) => {
-  const { content, userName, topicId } = req.body;
+  const { content, userId, topicTitles, createdAt } = req.body;
   try {
+    // 1. 确保用户存在
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+    if (!user) {
+      return res.status(400).json({ error: '用户不存在' });
+    }
+
+    // 2. 确认话题存在
+    const topicPromises = topicTitles.map(async (title: string) => {
+      return prisma.topic.findUnique({
+        where: { title }
+      });
+    });
+    const existingTopics = await Promise.all(topicPromises);
+
+    // 3. 创建消息并关联话题
     const message = await prisma.message.create({
       data: {
         content,
-        userName,
-        topicId: parseInt(topicId)
+        createdAt: createdAt ? new Date(createdAt) : new Date(),
+        user: {
+          connect: { id: userId }
+        },
+        topics: {
+          connect: existingTopics
+            .filter((topic): topic is NonNullable<typeof topic> => topic !== null)
+            .map(topic => ({ id: topic.id }))
+        }
       },
-      include: { topic: true }
+      include: {
+        user: true,
+        topics: true
+      }
     });
+
     res.json(message);
   } catch (error) {
+    console.error('发送消息失败:', error);
     res.status(500).json({ error: '发送消息失败' });
+  }
+});
+
+// 创建新话题
+app.post('/topics', async (req, res) => {
+  const { title, color, createdAt } = req.body;
+  try {
+    const topic = await prisma.topic.create({
+      data: {
+        title,
+        color: color || '#FFFFFF', // 默认白色
+        createdAt: createdAt ? new Date(createdAt) : new Date()
+      }
+    });
+    res.json(topic);
+  } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+      res.status(400).json({ error: '话题已存在' });
+    } else {
+      console.error('创建话题失败:', error);
+      res.status(500).json({ error: '创建话题失败' });
+    }
+  }
+});
+
+// GET 方法
+
+// 获取所有消息
+app.get('/messages', async (req, res) => {
+  try {
+    const messages = await prisma.message.findMany({
+      include: {
+        user: true,    // 包含发送者信息
+        topics: true   // 包含关联的所有话题
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: '获取消息失败' });
   }
 });
 
@@ -51,6 +127,10 @@ app.get('/topics', async (req, res) => {
       include: {
         _count: {
           select: { messages: true }
+        },
+        messages: {
+          take: 1,
+          orderBy: { createdAt: 'desc' }
         }
       },
       orderBy: { createdAt: 'desc' }
@@ -61,23 +141,6 @@ app.get('/topics', async (req, res) => {
   }
 });
 
-// 创建新话题
-app.post('/topics', async (req, res) => {
-  const { title } = req.body;
-  try {
-    const topic = await prisma.topic.create({
-      data: { title }
-    });
-    res.json(topic);
-  } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-      res.status(400).json({ error: '话题已存在' });
-    } else {
-      res.status(500).json({ error: '创建话题失败' });
-    }
-  }
-});
-
 app.listen(port, () => {
-  console.log(`服务器运行在端口 ${port}`);
+  console.log(`server is running on port ${port}`);
 });

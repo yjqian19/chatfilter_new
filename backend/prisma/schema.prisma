@@ -13,20 +13,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 消息模型
-model Message {
-  id        Int      @id @default(autoincrement())
-  content   String
-  userName  String   // 直接存储用户名，简化用户系统
-  createdAt DateTime @default(now())
-  topic     Topic    @relation(fields: [topicId], references: [id])
-  topicId   Int
+model User {
+  id       String    @id                     // Google OAuth ID (sub)
+  name     String?                           // 可选：用于显示
+  messages Message[]                         // 一对多：用户发的消息
 }
 
-// 话题模型
-model Topic {
+model Message {
   id        Int       @id @default(autoincrement())
-  title     String    @unique  // 话题标题唯一
+  content   String
   createdAt DateTime  @default(now())
-  messages  Message[]
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  topics    Topic[]   @relation("MessageTopics") // 多对多
+}
+
+model Topic {
+  id        Int        @id @default(autoincrement())
+  title     String     @unique
+  color     String
+  createdAt DateTime   @default(now())
+  messages  Message[]  @relation("MessageTopics")
 }
