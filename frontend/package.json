@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/core": "^0.34.2",
     "@types/socket.io-client": "^1.4.36",
     "next": "15.3.2",
     "next-auth": "^4.24.11",
