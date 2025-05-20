@@ -13,4 +13,3 @@ const config: NextConfig = {
 };
 
 export default config;
-module.exports = { output: 'export' };
