@@ -7,7 +7,7 @@ services:
     rootDir: backend
     buildCommand: |
       npm ci
-    startCommand: node index.js
+    startCommand: npx ts-node src/index.ts
     autoDeploy: true
 
   - type: web
