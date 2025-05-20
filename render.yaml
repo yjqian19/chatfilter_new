@@ -10,7 +10,7 @@ services:
     startCommand: node index.js
     autoDeploy: true
 
-  - type: static
+  - type: static_site
     name: chatfilter-frontend
     branch: main
     rootDir: frontend
