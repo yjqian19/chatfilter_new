@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: chatfilter-api
+    env: node
+    branch: main
+    plan: free
+    rootDir: backend
+    buildCommand: |
+      npm ci
+    startCommand: node index.js
+    autoDeploy: true
+
+  - type: static
+    name: chatfilter-frontend
+    branch: main
+    rootDir: frontend
+    buildCommand: |
+      npm ci
+      npm run build
+    staticPublishPath: frontend/out
+    autoDeploy: true
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://chatfilter-api.onrender.com
