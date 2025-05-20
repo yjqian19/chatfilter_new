@@ -2,7 +2,7 @@ services:
   - type: web
     name: chatfilter-api
     env: node
-    branch: main
+    branch: express
     plan: free
     rootDir: backend
     buildCommand: |
@@ -10,9 +10,10 @@ services:
     startCommand: node index.js
     autoDeploy: true
 
-  - type: static_site
+  - type: web
     name: chatfilter-frontend
-    branch: main
+    runtime: static
+    branch: express
     rootDir: frontend
     buildCommand: |
       npm ci
