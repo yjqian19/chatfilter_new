@@ -137,7 +137,7 @@ export default function Home() {
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-500">loading...</div>
+        <div className="text-gray-500">Loading...</div>
       </div>
     );
   }
@@ -162,6 +162,9 @@ export default function Home() {
         {isLoading && messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-gray-500">loading...</div>
+            {messages.length === 0 && (
+              <div className="text-gray-500">The server may take up to 1 minute to restart on Render.</div>
+            )}
           </div>
         ) : activeTab === 'all' ? (
           <div className="flex-1 flex flex-col min-h-0">
