@@ -4,10 +4,7 @@ import { Session } from 'next-auth';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // API请求辅助函数
-const fetchWithAuth = async (url: string, session: Session | null, options: RequestInit = {}) => {
-  if (!session?.user?.email) {
-    throw new Error('未登录');
-  }
+const fetchData = async (url: string, session: Session | null, options: RequestInit = {}) => {
 
   const headers = {
     'Content-Type': 'application/json',
@@ -31,28 +28,13 @@ const fetchWithAuth = async (url: string, session: Session | null, options: Requ
 export const userApi = {
   // 获取或创建用户信息
   getOrCreateUser: async (session: Session | null): Promise<User> => {
-    console.log('session', session?.user);
-    if (!session?.user?.email) {
-      throw new Error('未登录');
-    }
-
-    const userId = session.user.email;
-    const name = session.user.name || '';
-
-    const response = await fetch(`${API_URL}/users`, {
+    return fetchData('/users', session, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        id: userId,
-        name
+        id: session?.user?.email,
+        name: session?.user?.name
       }),
     });
-
-    if (!response.ok) {
-      throw new Error('用户操作失败');
-    }
-
-    return response.json();
   },
 };
 
@@ -60,7 +42,7 @@ export const userApi = {
 export const messageApi = {
   // 获取所有消息
   getMessages: async (session: Session | null): Promise<Message[]> => {
-    return fetchWithAuth('/messages', session);
+    return fetchData('/messages', session);
   },
 
   // 发送新消息
@@ -69,27 +51,21 @@ export const messageApi = {
     topicTitles: string[],
     session: Session | null
   ): Promise<Message> => {
-    if (!session?.user?.email) {
+
+    const userId = session?.user?.email;
+    if (!userId) {
       throw new Error('未登录');
     }
 
-    const userId = session.user.email;
+    console.log('topicTitles', topicTitles);
 
-    return fetch(`${API_URL}/messages`, {
+    return fetchData('/messages', session, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         content,
         userId,
         topicTitles
       }),
-    }).then(response => {
-      if (!response.ok) {
-        return response.json().then(error => {
-          throw new Error(error.error || '发送消息失败');
-        });
-      }
-      return response.json();
     });
   },
 };
@@ -98,7 +74,7 @@ export const messageApi = {
 export const topicApi = {
   // 获取所有话题
   getTopics: async (session: Session | null): Promise<Topic[]> => {
-    return fetchWithAuth('/topics', session);
+    return fetchData('/topics', session);
   },
 
   // 创建新话题
@@ -107,7 +83,7 @@ export const topicApi = {
     color: string,
     session: Session | null
   ): Promise<Topic> => {
-    return fetchWithAuth('/topics', session, {
+    return fetchData('/topics', session, {
       method: 'POST',
       body: JSON.stringify({ title, color }),
     });

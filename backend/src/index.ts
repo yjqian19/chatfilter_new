@@ -43,12 +43,16 @@ app.post('/messages', async (req, res) => {
     }
 
     // 2. 确认话题存在
+
     const topicPromises = topicTitles.map(async (title: string) => {
       return prisma.topic.findUnique({
         where: { title }
       });
     });
     const existingTopics = await Promise.all(topicPromises);
+    // 过滤掉null
+    const filteredTopics = existingTopics
+      .filter((topic): topic is NonNullable<typeof topic> => topic !== null);
 
     // 3. 创建消息并关联话题
     const message = await prisma.message.create({
@@ -59,9 +63,7 @@ app.post('/messages', async (req, res) => {
           connect: { id: userId }
         },
         topics: {
-          connect: existingTopics
-            .filter((topic): topic is NonNullable<typeof topic> => topic !== null)
-            .map(topic => ({ id: topic.id }))
+          connect: filteredTopics.map(topic => ({ id: topic.id }))
         }
       },
       include: {

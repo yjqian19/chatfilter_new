@@ -3,8 +3,8 @@ import { Topic } from '@/types';
 
 interface TopicSelectorProps {
   topics: Topic[];
-  selectedTopics: string[];
-  onToggleTopic: (topicId: string) => void;
+  selectedTopics: Topic[];
+  onToggleTopic: (topic: Topic) => void;
   onClearAll?: () => void;
   onCreateTopic?: (name: string, color?: string) => Promise<Topic | null>;
   label?: string;
@@ -34,6 +34,7 @@ export const TopicSelector = ({
     } finally {
       setIsCreating(false);
     }
+    setShowInput(false);
   };
 
   return (
@@ -55,20 +56,20 @@ export const TopicSelector = ({
         {topics.map(topic => (
           <button
             key={topic.id}
-            onClick={() => onToggleTopic(topic.id)}
+            onClick={() => onToggleTopic(topic)}
             className={`
               px-3 py-1 text-sm rounded-full transition-all duration-200
-              ${selectedTopics.includes(topic.id)
+              ${selectedTopics.some(t => t.id === topic.id)
                 ? 'bg-gray-600 transform hover:scale-105 active:scale-95 hover:-translate-y-0.5'
                 : 'bg-gray-200 hover:bg-gray-300 active:scale-95 hover:-translate-y-0.5'
               }
               hover:shadow-sm
             `}
             style={{
-              borderColor: selectedTopics.includes(topic.id) ? topic.color : undefined,
-              backgroundColor: selectedTopics.includes(topic.id) ? `${topic.color}33` : undefined, // 33 is the hex for 20% opacity
-              borderWidth: selectedTopics.includes(topic.id) ? '1px' : undefined,
-              borderStyle: selectedTopics.includes(topic.id) ? 'solid' : undefined
+              borderColor: selectedTopics.some(t => t.id === topic.id) ? topic.color : undefined,
+              backgroundColor: selectedTopics.some(t => t.id === topic.id) ? `${topic.color}33` : undefined, // 33 is the hex for 20% opacity
+              borderWidth: selectedTopics.some(t => t.id === topic.id) ? '1px' : undefined,
+              borderStyle: selectedTopics.some(t => t.id === topic.id) ? 'solid' : undefined
             }}
           >
             {topic.title}
@@ -90,7 +91,7 @@ export const TopicSelector = ({
               value={newTopicName}
               onChange={(e) => setNewTopicName(e.target.value)}
               placeholder="New topic name..."
-              className="w-40 px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-300"
+              className="w-30 px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-300"
             />
             <button
               type="submit"

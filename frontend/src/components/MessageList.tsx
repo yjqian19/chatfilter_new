@@ -1,11 +1,11 @@
-import { Message } from '../types';
+import { Message, Topic } from '../types';
 import { MessageItem } from './MessageItem';
 import { useEffect, useRef } from 'react';
 import { Session } from 'next-auth';
 
 interface MessageListProps {
   messages: Message[];
-  selectedTopics?: string[];
+  selectedTopics?: Topic[];
   session: Session;
 }
 
@@ -16,7 +16,7 @@ export const MessageList = ({ messages, selectedTopics = [], session }: MessageL
     ? messages
     : messages.filter(msg =>
         selectedTopics.every(selectedTopic =>
-          msg.topics.some(topic => topic.id === selectedTopic)
+          msg.topics.some(topic => topic.id === selectedTopic.id)
         )
       );
 

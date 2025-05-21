@@ -21,7 +21,7 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   // 用户选择主题
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<Topic[]>([]);
   // 用户新消息
   const [newMessage, setNewMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'filtered'>('all');
@@ -47,25 +47,27 @@ export default function Home() {
 
   // 加载消息和主题
   useEffect(() => {
+
+    if (!session) return;
+
     async function loadData() {
-      if (session) {
-        setIsLoading(true);
-        setError(null);
 
-        try {
-          // 加载所有主题
-          const topicsData = await topicApi.getTopics(session);
-          setTopics(topicsData);
+      setIsLoading(true);
+      setError(null);
 
-          // 加载所有消息
-          const messagesData = await messageApi.getMessages(session);
-          setMessages(messagesData);
-        } catch (err) {
-          console.error('数据加载失败:', err);
-          setError('数据加载失败');
-        } finally {
-          setIsLoading(false);
-        }
+      try {
+        // 加载所有主题
+        const topicsData = await topicApi.getTopics(session);
+        setTopics(topicsData);
+
+        // 加载所有消息
+        const messagesData = await messageApi.getMessages(session);
+        setMessages(messagesData);
+      } catch (err) {
+        console.error('数据加载失败:', err);
+        setError('数据加载失败');
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -73,11 +75,11 @@ export default function Home() {
   }, [session]);
 
   // 切换主题选择
-  const toggleTopic = (topicTitle: string) => {
+  const toggleTopic = (topic: Topic) => {
     setSelectedTopics(prev =>
-      prev.includes(topicTitle)
-        ? prev.filter(title => title !== topicTitle)
-        : [...prev, topicTitle]
+      prev.some(t => t.id === topic.id)
+        ? prev.filter(t => t.id !== topic.id)
+        : [...prev, topic]
     );
   };
 
@@ -88,10 +90,13 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
 
+    console.log('selectedTopics', selectedTopics);
+    console.log('topics', topics);
+
     try {
       const message = await messageApi.sendMessage(
         newMessage,
-        selectedTopics,
+        selectedTopics.map(topic => topic.title),
         session
       );
 
@@ -195,7 +200,6 @@ export default function Home() {
                 selectedTopics={selectedTopics}
                 onToggleTopic={toggleTopic}
                 onClearAll={handleClearAllTopics}
-                onCreateTopic={handleCreateTopic}
               />
             </div>
             <MessageList
