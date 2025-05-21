@@ -23,10 +23,10 @@ app.post('/users', async (req, res) => {
       update: name ? { name } : {},  // 只有当name存在时才更新
       create: { id, name }  // name在schema中已定义为可选
     });
-    res.json(user);
+    return res.json(user);
   } catch (error) {
     console.error('用户操作失败:', error);
-    res.status(500).json({ error: '用户操作失败' });
+    return res.status(500).json({ error: '用户操作失败' });
   }
 });
 
@@ -72,10 +72,10 @@ app.post('/messages', async (req, res) => {
       }
     });
 
-    res.json(message);
+    return res.json(message);
   } catch (error) {
     console.error('发送消息失败:', error);
-    res.status(500).json({ error: '发送消息失败' });
+    return res.status(500).json({ error: '发送消息失败' });
   }
 });
 
@@ -90,13 +90,13 @@ app.post('/topics', async (req, res) => {
         createdAt: createdAt ? new Date(createdAt) : new Date()
       }
     });
-    res.json(topic);
+    return res.json(topic);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-      res.status(400).json({ error: '话题已存在' });
+      return res.status(400).json({ error: '话题已存在' });
     } else {
       console.error('创建话题失败:', error);
-      res.status(500).json({ error: '创建话题失败' });
+      return res.status(500).json({ error: '创建话题失败' });
     }
   }
 });
