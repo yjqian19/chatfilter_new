@@ -57,8 +57,6 @@ export const messageApi = {
       throw new Error('未登录');
     }
 
-    console.log('topicTitles', topicTitles);
-
     return fetchData('/messages', session, {
       method: 'POST',
       body: JSON.stringify({
