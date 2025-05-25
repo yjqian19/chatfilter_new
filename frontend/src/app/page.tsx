@@ -63,6 +63,8 @@ export default function Home() {
         // 加载所有消息
         const messagesData = await messageApi.getMessages(session);
         setMessages(messagesData);
+        console.log('Successfully loaded messages and topics');
+
       } catch (err) {
         console.error('数据加载失败:', err);
         setError('数据加载失败');
