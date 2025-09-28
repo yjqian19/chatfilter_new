@@ -14,6 +14,7 @@ The design process involved comprehensive user research and iterative prototypin
 - **Iterative Design Improvements**: Multiple rounds of design refinement based on user feedback
 - **Paper Prototyping Testing**: Rapid testing of interface concepts through low-fidelity prototypes
 - **Figma Prototype Testing**: High-fidelity interactive prototypes to ensure the software design meets user needs and satisfaction
+<div align="center">
 <table>
   <tr>
     <td align="center">
@@ -26,6 +27,7 @@ The design process involved comprehensive user research and iterative prototypin
     </td>
   </tr>
 </table>
+</div>
 
 ### Implementation
 The technical implementation covers the full-stack development:
@@ -37,7 +39,7 @@ The technical implementation covers the full-stack development:
   *See full schema: [backend/prisma/schema.prisma](backend/prisma/schema.prisma)*
 
 - **Frontend Development**: Built with Next.js, TypeScript, and Tailwind CSS to create a responsive and intuitive user interface with Google OAuth authentication. Designed animation to imrpove usability.
-<div style="text-align: center;">
+<div align="center">
   <figure style="display:inline-block; margin:10px;">
     <img src="imgs/UI_01.png" height="500" alt="pic1">
   </figure>
