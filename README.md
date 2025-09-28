@@ -37,10 +37,10 @@ The technical implementation covers the full-stack development:
 - **Frontend Development**: Built with Next.js, TypeScript, and Tailwind CSS to create a responsive and intuitive user interface with Google OAuth authentication. Designed animation to imrpove usability.
 <div style="text-align: center;">
   <figure style="display:inline-block; margin:10px;">
-    <img src="imgs/ui_01.png" height="500" alt="pic1">
+    <img src="imgs/UI_01.png" height="500" alt="pic1">
   </figure>
   <figure style="display:inline-block; margin:10px;">
-    <img src="imgs/ui_02.png" height="500" alt="pic2">
+    <img src="imgs/UI_02.png" height="500" alt="pic2">
   </figure>
 </div>
 
